@@ -179,14 +179,14 @@ RSpec.describe Phobos::Listener do
     consumer = listener.send(:create_kafka_consumer)
     expect(listener).to receive(:create_kafka_consumer).and_return(consumer)
     expect(consumer).to receive(:each_batch).with(
-      hash_including(max_wait_time: max_wait_time, min_bytes: min_bytes, mark_message_as_processed: mark_message_as_processed)
+      hash_including(max_wait_time: max_wait_time, min_bytes: min_bytes, automatically_mark_as_processed: automatically_mark_as_processed)
     ).and_call_original
 
     consume_and_stop
   end
 
   context 'when message processing is disabled' do
-    let(:mark_message_as_processed) { false }
+    let(:automatically_mark_as_processed) { false }
     let(:consumer) { listener.send(:create_kafka_consumer) }
 
     before do
@@ -197,7 +197,9 @@ RSpec.describe Phobos::Listener do
       let(:delivery) { 'batch' }
 
       it 'passes mark_message_as_processed as false to the consumer' do
-        expect(consumer).to receive(:each_batch).with(hash_including(automatically_mark_as_processed: automatically_mark_as_processed)).and_call_original
+        expect(consumer).to receive(:each_batch).with(
+          hash_including(automatically_mark_as_processed: automatically_mark_as_processed)
+        ).and_call_original
         consume_and_stop
       end
     end
@@ -206,7 +208,9 @@ RSpec.describe Phobos::Listener do
       let(:delivery) { 'message' }
 
       it 'passes mark_message_as_processed as false to the consumer' do
-        expect(consumer).to receive(:each_message).with(hash_including(automatically_mark_as_processed: automatically_mark_as_processed)).and_call_original
+        expect(consumer).to receive(:each_message).with(
+          hash_including(automatically_mark_as_processed: automatically_mark_as_processed)
+        ).and_call_original
         consume_and_stop
       end
     end

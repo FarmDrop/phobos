@@ -16,9 +16,9 @@ module Phobos
     def initialize(handler:, group_id:, topic:, min_bytes: nil, max_wait_time: nil,
                    force_encoding: nil, start_from_beginning: true, backoff: nil,
                    delivery: 'batch', max_bytes_per_partition: DEFAULT_MAX_BYTES_PER_PARTITION,
-                   session_timeout: nil, automatically_mark_as_processed: true, offset_commit_interval: nil,
-                   heartbeat_interval: nil, offset_commit_threshold: nil,
-                   offset_retention_time: nil)
+                   session_timeout: nil, automatically_mark_as_processed: true,
+                   offset_commit_interval: nil, heartbeat_interval: nil,
+                   offset_commit_threshold: nil, offset_retention_time: nil)
       @id = SecureRandom.hex[0...6]
       @handler_class = handler
       @group_id = group_id
@@ -34,11 +34,11 @@ module Phobos
         offset_commit_threshold: offset_commit_threshold
       )
       @encoding = Encoding.const_get(force_encoding.to_sym) if force_encoding
-      @message_processing_opts = compact({
-        min_bytes: min_bytes, 
-        max_wait_time: max_wait_time, 
+      @message_processing_opts = compact(
+        min_bytes: min_bytes,
+        max_wait_time: max_wait_time,
         automatically_mark_as_processed: automatically_mark_as_processed
-      })
+      )
       @kafka_client = Phobos.create_kafka_client
       @producer_enabled = @handler_class.ancestors.include?(Phobos::Producer)
     end
