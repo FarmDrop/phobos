@@ -28,6 +28,7 @@ RSpec.describe Phobos::Listener do
   let(:offset_commit_threshold) { nil }
   let(:heartbeat_interval) { nil }
   let(:offset_retention_time) { nil }
+  let(:automatically_mark_as_processed) { true }
   let(:delivery) { 'batch' }
   let :handler_config do
     {
@@ -43,6 +44,7 @@ RSpec.describe Phobos::Listener do
       offset_commit_interval: offset_commit_interval,
       offset_commit_threshold: offset_commit_threshold,
       offset_retention_time: offset_retention_time,
+      automatically_mark_as_processed: automatically_mark_as_processed,
       session_timeout: session_timeout,
       heartbeat_interval: heartbeat_interval,
       delivery: delivery
@@ -173,14 +175,42 @@ RSpec.describe Phobos::Listener do
     end
   end
 
-  it 'calls consumer with max_wait_time and min_bytes' do
+  it 'calls consumer with max_wait_time, min_bytes and mark_message_as_processed' do
     consumer = listener.send(:create_kafka_consumer)
     expect(listener).to receive(:create_kafka_consumer).and_return(consumer)
     expect(consumer).to receive(:each_batch).with(
-      hash_including(max_wait_time: max_wait_time, min_bytes: min_bytes)
+      hash_including(max_wait_time: max_wait_time, min_bytes: min_bytes, mark_message_as_processed: mark_message_as_processed)
     ).and_call_original
 
     consume_and_stop
+  end
+
+  context 'when message processing is disabled' do
+    let(:mark_message_as_processed) { false }
+    let(:consumer) { listener.send(:create_kafka_consumer) }
+
+    before do
+      expect(listener).to receive(:create_kafka_consumer).and_return(consumer)
+    end
+    
+    context 'batches' do
+      let(:delivery) { 'batch' }
+
+      it 'passes mark_message_as_processed as false to the consumer' do
+        expect(consumer).to receive(:each_batch).with(hash_including(automatically_mark_as_processed: automatically_mark_as_processed)).and_call_original
+        consume_and_stop
+      end
+    end
+
+    context 'individual messages' do
+      let(:delivery) { 'message' }
+
+      it 'passes mark_message_as_processed as false to the consumer' do
+        expect(consumer).to receive(:each_message).with(hash_including(automatically_mark_as_processed: automatically_mark_as_processed)).and_call_original
+        consume_and_stop
+      end
+    end
+
   end
 
   context 'when min_bytes is not set' do

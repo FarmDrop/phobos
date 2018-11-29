@@ -24,6 +24,7 @@ module Phobos
       :backoff,
       :delivery,
       :session_timeout,
+      :automatically_mark_as_processed,
       :offset_commit_interval,
       :offset_commit_threshold,
       :heartbeat_interval,
